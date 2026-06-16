@@ -10,6 +10,7 @@ services:
       - LICENSE=accept
       - DB2INST1_PASSWORD=Password1
       - DBNAME=TESTDB
+      - LD_LIBRARY_PATH=/opt/ibm/db2/V11.5/lib64:$LD_LIBRARY_PATH
     volumes:
       - .:/project                     
       - db2_sistema:/database           
