@@ -5,7 +5,12 @@ while ! nc -z localhost 50000; do
   sleep 2
 done
 
-su - db2inst1 -c "db2 connect to TESTDB && db2 'BIND /project/Mainframe/consultadb2.bnd VALIDATE RUN' && db2 terminate"
+su - db2inst1 -c "db2 connect to TESTDB && \ 
+  db2 'BIND /project/Mainframe/consultadb2.bnd VALIDATE RUN' && \
+  db2 \"DELETE FROM CUENTAS WHERE ID = 1\" && \
+  db2 \"INSERT INTO CUENTAS (ID, MENSAJE) VALUES (1, '¡CONEXION EXITOSA CON IBM DB2!')\" && \
+  db2 terminate" 
+
 cd /project/Mainframe
 cobc -x -fstatic-call consultadb2.cbl puente.c /opt/ibm/db2/V11.5/lib64/libdb2gmf.a -I/opt/ibm/db2/V11.5/include/cobol_mf -L/opt/ibm/db2/V11.5/lib64 -ldb2   
 
