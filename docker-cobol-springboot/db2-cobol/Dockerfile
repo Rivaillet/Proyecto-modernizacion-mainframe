@@ -9,4 +9,6 @@ RUN dnf clean all && \
     dnf install -y gnucobol nmap-ncat
 
 COPY iniciar-netcat.sh /var/custom/iniciar-netcat.sh
-RUN chmod +x /var/custom/iniciar-netcat.sh
+COPY esquema.sql /var/custom/scripts-db/esquema.sql
+COPY datos.sql /var/custom/scripts-db/datos.sql
+RUN chmod +x /var/custom/iniciar-netcat.sh && chmod -R 755 /var/custom/scripts-db/

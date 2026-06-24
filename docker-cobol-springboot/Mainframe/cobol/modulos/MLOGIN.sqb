@@ -1,0 +1,61 @@
+       IDENTIFICATION DIVISION. 
+       PROGRAM-ID. MLOGIN.
+       AUTHOR. JUAN-BARBERO.
+       ENVIRONMENT DIVISION. 
+       DATA DIVISION. 
+       
+       WORKING-STORAGE SECTION. 
+
+           EXEC SQL BEGIN DECLARE SECTION END-EXEC. 
+       01  WS-DNI       PIC X(9)       VALUE SPACES.
+       01  WS-PASSWORD  PIC X(20)      VALUE SPACES.
+       01  WS-NOMBRE    PIC X(100)     VALUE SPACES.
+
+           EXEC SQL END DECLARE SECTION END-EXEC.
+
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+       01  SQL-ERROR    PIC X(9)      VALUE SPACES.
+
+       
+       
+       LINKAGE SECTION.
+       01  TRAMA-ENTRADA.
+           05 FILLER       PIC X(4).
+           05 TE-DNI        PIC X(9).
+           05 TE-PASSWORD   PIC X(20). 
+
+       01  TRAMA-SALIDA.
+           05 TS-CD-RETORNO PIC 99.
+           05 TS-NOMBRE     PIC X(100).
+
+       PROCEDURE DIVISION USING TRAMA-ENTRADA
+                                TRAMA-SALIDA.
+
+       0000-MAIN.
+
+           PERFORM 1000-CALLDB2.
+           PERFORM 2000-VALIDACION-DATOS.
+           GOBACK.
+
+       1000-CALLDB2.
+
+           MOVE TE-DNI TO WS-DNI.
+           EXEC SQL CONNECT TO TESTDB END-EXEC.
+           EXEC SQL 
+                SELECT PASSWORD , NOMBRE
+                INTO   :WS-PASSWORD , :WS-NOMBRE
+                FROM   CLIENTE
+                WHERE  DNI = :WS-DNI
+           END-EXEC.
+
+       2000-VALIDACION-DATOS.
+
+           IF   WS-PASSWORD = TE-PASSWORD 
+           THEN MOVE WS-NOMBRE TO TS-NOMBRE 
+           END-IF.
+           MOVE SQLCODE   TO TS-CD-RETORNO.
+
+      *9000-EVAL-SQLCODE.
+
+
+                
