@@ -15,9 +15,9 @@ su - db2inst1 -c "db2 connect to TESTDB && \
   db2 terminate"
 
 cd /project
-***cobc -x -fstatic-call Mainframe/cobol/main/MAIN.cbl Mainframe/cobol/modulos/MLOGIN.cbl Mainframe/puente.c /opt/ibm/db2/V11.5/lib64/libdb2gmf.a -I/opt/ibm/db2/V11.5/include/cobol_mf -L /opt/ibm/db2/V11.5/lib64 -ldb2
+#***cobc -x -fstatic-call Mainframe/cobol/main/MAIN.cbl Mainframe/cobol/modulos/MLOGIN.cbl Mainframe/puente.c /opt/ibm/db2/V11.5/lib64/libdb2gmf.a -I/opt/ibm/db2/V11.5/include/cobol_mf -L /opt/ibm/db2/V11.5/lib64 -ldb2
 cobc -x -fstatic-call \
-  -o /project/bin/MAIN/MAIN \
+  -o /project/Mainframe/bin/MAIN/MAIN \
   Mainframe/cobol/main/MAIN.cbl \
   Mainframe/cobol/modulos/MLOGIN.cbl \
   Mainframe/puente.c \

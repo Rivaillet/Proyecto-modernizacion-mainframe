@@ -50,10 +50,27 @@
 
        2000-VALIDACION-DATOS.
 
-           IF   WS-PASSWORD = TE-PASSWORD 
-           THEN MOVE WS-NOMBRE TO TS-NOMBRE 
-           END-IF.
-           MOVE SQLCODE   TO TS-CD-RETORNO.
+           EVALUATE SQLCODE
+               WHEN 0
+      
+                   IF  WS-PASSWORD = TE-PASSWORD
+                       MOVE 00        TO TS-CD-RETORNO
+                       MOVE WS-NOMBRE TO TS-NOMBRE
+                   ELSE
+                       MOVE 02        TO TS-CD-RETORNO
+                       MOVE SPACES    TO TS-NOMBRE
+                   END-IF
+
+               WHEN 100
+     
+                   MOVE 01            TO TS-CD-RETORNO
+                   MOVE SPACES        TO TS-NOMBRE
+
+               WHEN OTHER
+                   DISPLAY "[DB2 ERROR] SQLCODE DETECTADO: " SQLCODE
+                   MOVE 99            TO TS-CD-RETORNO
+                   MOVE SPACES        TO TS-NOMBRE
+           END-EVALUATE.
 
       *9000-EVAL-SQLCODE.
 

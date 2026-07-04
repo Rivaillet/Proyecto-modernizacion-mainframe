@@ -38,7 +38,7 @@
        01  SQLA-PROGRAM-ID.
            05 SQL-PART1 pic 9(4) COMP-5 value 172.
            05 SQL-PART2 pic X(6) value "AEAVAI".
-           05 SQL-PART3 pic X(24) value "xAK7WYGq01111 2         ".
+           05 SQL-PART3 pic X(24) value "YAfgSEHq01111 2         ".
            05 SQL-PART4 pic 9(4) COMP-5 value 8.
            05 SQL-PART5 pic X(8) value "DB2INST1".
            05 SQL-PART6 pic X(120) value LOW-VALUES.
@@ -140,7 +140,8 @@
             BY VALUE 0
                                               .
            
-      *EXEC SQL SELECT PASSWORD , NOMBRE
+      *EXEC SQL 
+      *SELECT PASSWORD , NOMBRE
       *          INTO   :WS-PASSWORD , :WS-NOMBRE
       *          FROM   CLIENTE
       *          WHERE  DNI = :WS-DNI
@@ -232,10 +233,27 @@
 
        2000-VALIDACION-DATOS.
 
-           IF   WS-PASSWORD = TE-PASSWORD 
-           THEN MOVE WS-NOMBRE TO TS-NOMBRE 
-           END-IF.
-           MOVE SQLCODE   TO TS-CD-RETORNO.
+           EVALUATE SQLCODE
+               WHEN 0
+      
+                   IF  WS-PASSWORD = TE-PASSWORD
+                       MOVE 00        TO TS-CD-RETORNO
+                       MOVE WS-NOMBRE TO TS-NOMBRE
+                   ELSE
+                       MOVE 02        TO TS-CD-RETORNO
+                       MOVE SPACES    TO TS-NOMBRE
+                   END-IF
+
+               WHEN 100
+      
+                   MOVE 01            TO TS-CD-RETORNO
+                   MOVE SPACES        TO TS-NOMBRE
+
+               WHEN OTHER
+                   DISPLAY "[DB2 ERROR] SQLCODE DETECTADO: " SQLCODE
+                   MOVE 99            TO TS-CD-RETORNO
+                   MOVE SPACES        TO TS-NOMBRE
+           END-EVALUATE.
 
       *9000-EVAL-SQLCODE.
 

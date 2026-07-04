@@ -1,21 +1,29 @@
 #!/bin/bash
 
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-NC='\033[0m' 
+echo "=================================================="
+echo "🔐 [CAJERO] Inicio de Sesión - Modernización"
+echo "=================================================="
 
-echo -e "${CYAN}=== [Cliente] Configuración de la consulta ===${NC}"
-echo -n "Introduce el número de cuenta que deseas consultar: "
-read CUENTA
+# 1. Pedir el DNI de forma interactiva
+read -p "👉 Introduce tu DNI: " DNI
 
+# 2. Pedir la contraseña sin eco en la pantalla (modo oculto)
+read -s -p "👉 Introduce tu contraseña: " PASSWORD
+echo "" # Este echo es necesario para dar un salto de línea tras ocultar la contraseña
 
-if [ -z "$CUENTA" ]; then
-  CUENTA="1"
-  echo -e "${CYAN}No introdujiste ningún valor. Usando cuenta por defecto: $CUENTA${NC}"
+# Validación simple por si el usuario deja campos vacíos antes de lanzar el curl
+if [ -z "$DNI" ] || [ -z "$PASSWORD" ]; then
+    echo -e "\n❌ Error: El DNI y la contraseña son obligatorios."
+    exit 1
 fi
 
-echo -e "\n${GREEN}=== [Cliente] Lanzando petición a la API Spring Boot para la cuenta: $CUENTA ===${NC}"
+echo -e "\n📡 Enviando credenciales de forma segura a Spring Boot..."
 
-curl -s "http://localhost:8080/consultar?cuenta=$CUENTA"
+# 3. Lanzar la petición HTTP POST inyectando las variables leídas
+curl -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d "{\"dni\":\"$DNI\", \"password\":\"$PASSWORD\"}"
 
-echo -e "\n${GREEN}=======================================================${NC}"
+echo -e "\n\n=================================================="
+echo "🏁 Fin de la conexión."
+echo "=================================================="
