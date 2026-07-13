@@ -38,7 +38,7 @@
        01  SQLA-PROGRAM-ID.
            05 SQL-PART1 pic 9(4) COMP-5 value 172.
            05 SQL-PART2 pic X(6) value "AEAVAI".
-           05 SQL-PART3 pic X(24) value "YAfgSEHq01111 2         ".
+           05 SQL-PART3 pic X(24) value "xA8oMNHq01111 2         ".
            05 SQL-PART4 pic 9(4) COMP-5 value 8.
            05 SQL-PART5 pic X(8) value "DB2INST1".
            05 SQL-PART6 pic X(120) value LOW-VALUES.
@@ -49,9 +49,10 @@
 
            
       *EXEC SQL BEGIN DECLARE SECTION END-EXEC. 
-       01  WS-DNI       PIC X(9)       VALUE SPACES.
-       01  WS-PASSWORD  PIC X(20)      VALUE SPACES.
-       01  WS-NOMBRE    PIC X(100)     VALUE SPACES.
+       01  WS-DNI        PIC X(9)        VALUE SPACES.
+       01  WS-PASSWORD   PIC X(20)       VALUE SPACES.
+       01  WS-NOMBRE     PIC X(100)      VALUE SPACES.
+       01  WS-ID-CLIENTE PIC S9(9)       COMP-5.
 
            
       *EXEC SQL END DECLARE SECTION END-EXEC
@@ -66,15 +67,15 @@
        01  SQL-ERROR    PIC X(9)      VALUE SPACES.
 
        
-       
        LINKAGE SECTION.
        01  TRAMA-ENTRADA.
-           05 FILLER       PIC X(4).
+           05 FILLER        PIC X(4).
            05 TE-DNI        PIC X(9).
            05 TE-PASSWORD   PIC X(20). 
 
        01  TRAMA-SALIDA.
            05 TS-CD-RETORNO PIC 99.
+           05 TS-ID-CLIENTE PIC 9(9).
            05 TS-NOMBRE     PIC X(100).
 
        PROCEDURE DIVISION USING TRAMA-ENTRADA
@@ -141,8 +142,8 @@
                                               .
            
       *EXEC SQL 
-      *SELECT PASSWORD , NOMBRE
-      *          INTO   :WS-PASSWORD , :WS-NOMBRE
+      *SELECT PASSWORD , NOMBRE, ID_CLIENTE
+      *          INTO   :WS-PASSWORD , :WS-NOMBRE, :WS-ID-CLIENTE
       *          FROM   CLIENTE
       *          WHERE  DNI = :WS-DNI
       *     END-EXEC
@@ -178,7 +179,7 @@
                      0
 
            MOVE 3 TO SQL-STMT-ID 
-           MOVE 2 TO SQLDSIZE 
+           MOVE 3 TO SQLDSIZE 
            MOVE 3 TO SQLDA-ID 
 
            CALL "sqlgaloc" USING
@@ -215,6 +216,20 @@
             BY VALUE 0
                      0
 
+           MOVE 4 TO SQL-HOST-VAR-LENGTH
+           MOVE 496 TO SQL-DATA-TYPE
+           MOVE 2 TO SQLVAR-INDEX
+           MOVE 3 TO SQLDA-ID
+
+           CALL "sqlgstlv" USING 
+            BY VALUE SQLDA-ID
+                     SQLVAR-INDEX
+                     SQL-DATA-TYPE
+                     SQL-HOST-VAR-LENGTH
+            BY REFERENCE WS-ID-CLIENTE
+            BY VALUE 0
+                     0
+
            MOVE 3 TO SQL-OUTPUT-SQLDA-ID 
            MOVE 2 TO SQL-INPUT-SQLDA-ID 
            MOVE 1 TO SQL-SECTIONUMBER 
@@ -237,22 +252,22 @@
                WHEN 0
       
                    IF  WS-PASSWORD = TE-PASSWORD
-                       MOVE 00        TO TS-CD-RETORNO
-                       MOVE WS-NOMBRE TO TS-NOMBRE
+                       MOVE 00            TO TS-CD-RETORNO
+                       MOVE WS-NOMBRE     TO TS-NOMBRE
+                       MOVE WS-ID-CLIENTE TO TS-ID-CLIENTE
                    ELSE
-                       MOVE 02        TO TS-CD-RETORNO
-                       MOVE SPACES    TO TS-NOMBRE
+                       MOVE 02            TO TS-CD-RETORNO
+                       MOVE SPACES        TO TS-NOMBRE
                    END-IF
 
                WHEN 100
       
-                   MOVE 01            TO TS-CD-RETORNO
-                   MOVE SPACES        TO TS-NOMBRE
+                   MOVE 01                TO TS-CD-RETORNO
+                   MOVE SPACES            TO TS-NOMBRE
 
                WHEN OTHER
-                   DISPLAY "[DB2 ERROR] SQLCODE DETECTADO: " SQLCODE
-                   MOVE 99            TO TS-CD-RETORNO
-                   MOVE SPACES        TO TS-NOMBRE
+                   MOVE 99                TO TS-CD-RETORNO
+                   MOVE SQLCODE           TO TS-NOMBRE
            END-EVALUATE.
 
       *9000-EVAL-SQLCODE.

@@ -7,9 +7,10 @@
        WORKING-STORAGE SECTION. 
 
            EXEC SQL BEGIN DECLARE SECTION END-EXEC. 
-       01  WS-DNI       PIC X(9)       VALUE SPACES.
-       01  WS-PASSWORD  PIC X(20)      VALUE SPACES.
-       01  WS-NOMBRE    PIC X(100)     VALUE SPACES.
+       01  WS-DNI        PIC X(9)        VALUE SPACES.
+       01  WS-PASSWORD   PIC X(20)       VALUE SPACES.
+       01  WS-NOMBRE     PIC X(100)      VALUE SPACES.
+       01  WS-ID-CLIENTE PIC S9(9)       COMP-5.
 
            EXEC SQL END DECLARE SECTION END-EXEC.
 
@@ -17,15 +18,15 @@
        01  SQL-ERROR    PIC X(9)      VALUE SPACES.
 
        
-       
        LINKAGE SECTION.
        01  TRAMA-ENTRADA.
-           05 FILLER       PIC X(4).
+           05 FILLER        PIC X(4).
            05 TE-DNI        PIC X(9).
            05 TE-PASSWORD   PIC X(20). 
 
        01  TRAMA-SALIDA.
            05 TS-CD-RETORNO PIC 99.
+           05 TS-ID-CLIENTE PIC 9(9).
            05 TS-NOMBRE     PIC X(100).
 
        PROCEDURE DIVISION USING TRAMA-ENTRADA
@@ -42,8 +43,8 @@
            MOVE TE-DNI TO WS-DNI.
            EXEC SQL CONNECT TO TESTDB END-EXEC.
            EXEC SQL 
-                SELECT PASSWORD , NOMBRE
-                INTO   :WS-PASSWORD , :WS-NOMBRE
+                SELECT PASSWORD , NOMBRE, ID_CLIENTE
+                INTO   :WS-PASSWORD , :WS-NOMBRE, :WS-ID-CLIENTE
                 FROM   CLIENTE
                 WHERE  DNI = :WS-DNI
            END-EXEC.
@@ -54,22 +55,22 @@
                WHEN 0
       
                    IF  WS-PASSWORD = TE-PASSWORD
-                       MOVE 00        TO TS-CD-RETORNO
-                       MOVE WS-NOMBRE TO TS-NOMBRE
+                       MOVE 00            TO TS-CD-RETORNO
+                       MOVE WS-NOMBRE     TO TS-NOMBRE
+                       MOVE WS-ID-CLIENTE TO TS-ID-CLIENTE
                    ELSE
-                       MOVE 02        TO TS-CD-RETORNO
-                       MOVE SPACES    TO TS-NOMBRE
+                       MOVE 02            TO TS-CD-RETORNO
+                       MOVE SPACES        TO TS-NOMBRE
                    END-IF
 
                WHEN 100
      
-                   MOVE 01            TO TS-CD-RETORNO
-                   MOVE SPACES        TO TS-NOMBRE
+                   MOVE 01                TO TS-CD-RETORNO
+                   MOVE SPACES            TO TS-NOMBRE
 
                WHEN OTHER
-                   DISPLAY "[DB2 ERROR] SQLCODE DETECTADO: " SQLCODE
-                   MOVE 99            TO TS-CD-RETORNO
-                   MOVE SPACES        TO TS-NOMBRE
+                   MOVE 99                TO TS-CD-RETORNO
+                   MOVE SQLCODE           TO TS-NOMBRE
            END-EVALUATE.
 
       *9000-EVAL-SQLCODE.

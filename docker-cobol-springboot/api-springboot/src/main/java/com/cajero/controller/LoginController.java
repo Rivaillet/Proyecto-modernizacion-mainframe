@@ -35,24 +35,24 @@ public class LoginController {
 
        
             LoginTramaSalida tramaSalida = new LoginTramaSalida(respuestaCruda);
-
+            System.out.println("TRAMA SALIDA : " +"|"+ tramaSalida.getCodigoRetorno()+"|"+tramaSalida.getIdCliente()+"|"+tramaSalida.getNombreCliente());
          
             if (tramaSalida.isSuccess()) {
-                return ResponseEntity.ok(new LoginResponse("OK", "Bienvenido " + tramaSalida.getNombreCliente()));
+                return ResponseEntity.ok(new LoginResponse("OK", "Bienvenido " + tramaSalida.getNombreCliente(),tramaSalida.getIdCliente()));
             } else if ("01".equals(tramaSalida.getCodigoRetorno())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new LoginResponse("ERROR", "El DNI no existe"));
+                        .body(new LoginResponse("ERROR", "El DNI no existe",tramaSalida.getIdCliente()));
             } else if ("02".equals(tramaSalida.getCodigoRetorno())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new LoginResponse("ERROR", "Contraseña incorrecta"));
+                        .body(new LoginResponse("ERROR", "Contraseña incorrecta",tramaSalida.getIdCliente()));
             } else {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(new LoginResponse("DOWN", "Error crítico en Core"));
+                        .body(new LoginResponse("DOWN", "Error crítico en Core",tramaSalida.getIdCliente()));
             }
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new LoginResponse("DOWN", e.getMessage()));
+                    .body(new LoginResponse("DOWN", e.getMessage(),null));
         }
 
     }

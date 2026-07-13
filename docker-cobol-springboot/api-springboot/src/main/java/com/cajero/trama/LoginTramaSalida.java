@@ -4,17 +4,20 @@ public class LoginTramaSalida {
     
     private final String codigoRetorno; 
     private final String nombreCliente;  
+    private final String idCliente;
 
-    // El constructor procesa la trama posicional pura
+    
     public LoginTramaSalida(String respuestaCruda) {
-        if (respuestaCruda == null || respuestaCruda.length() < 102) {
+        if (respuestaCruda == null || respuestaCruda.length() < 111) {
             this.codigoRetorno = "99"; 
             this.nombreCliente = "";
+            this.idCliente     = "0000000000";
             return;
         }
         
         this.codigoRetorno = respuestaCruda.substring(0, 2).trim();
-        this.nombreCliente = respuestaCruda.substring(2, 102).trim();
+        this.idCliente     = respuestaCruda.substring(2,11).trim();
+        this.nombreCliente = respuestaCruda.substring(11, 111).trim();
     }
 
     public boolean isSuccess() {
@@ -23,4 +26,5 @@ public class LoginTramaSalida {
 
     public String getCodigoRetorno() { return codigoRetorno; }
     public String getNombreCliente() { return nombreCliente; }
+    public String getIdCliente()     { return idCliente; }
 }

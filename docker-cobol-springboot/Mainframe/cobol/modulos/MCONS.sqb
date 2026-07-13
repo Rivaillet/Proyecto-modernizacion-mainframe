@@ -1,0 +1,122 @@
+        IDENTIFICATION DIVISION. 
+        PROGRAM-ID. MCONS.
+        AUTHOR. JUAN-BARBERO.
+        ENVIRONMENT DIVISION. 
+        DATA DIVISION. 
+
+        WORKING-STORAGE SECTION.
+        EXEC SQL BEGIN DECLARE SECTION END-EXEC.
+        01  WS-ID-CLIENTE           PIC S9(9)         COMP-5.
+        01  WS-SALDO-EFECTIVO       PIC S9(10)V99     COMP-3.
+        01  WS-SALDO-EMBARGADO      PIC S9(10)V99     COMP-3.
+        01  WS-IBAN                 PIC X(24)         VALUE SPACES.
+        EXEC SQL END DECLARE SECTION END-EXEC.
+
+        EXEC SQL INCLUDE SQLCA END-EXEC.
+        01  SQL-ERROR               PIC X(9)          VALUE SPACES.
+
+        01  ST-CURSOR-EOF           PIC X             VALUE 'N'.
+           88 CURSOR-EOF                              VALUE 'S'.
+           88 CURSOR-OK                               VALUE 'N'.
+        LINKAGE SECTION.
+        01  TRAMA-ENTRADA.
+            05 FILLER                PIC X(4).
+            05 TE-ID-CLIENTE         PIC 9(9).
+
+        01  TRAMA-SALIDA.
+            05 TS-CD-RETORNO         PIC 9(2).       
+            05 TS-NUM-CUENTAS        PIC 9(2).        
+            05 TS-LISTA-CUENTAS      OCCURS 10 TIMES
+                                     INDEXED BY IX-CTA.
+               10 TS-IBAN            PIC X(24).        
+               10 TS-SALDO-EFECTIVO  PIC +9(10).99.   
+               10 TS-SALDO-EMBARGADO PIC +9(10).99.    
+
+        PROCEDURE DIVISION USING TRAMA-ENTRADA 
+                                 TRAMA-SALIDA.
+        
+        0000-MAIN.
+
+           INITIALIZE TRAMA-SALIDA.
+           
+           EXEC SQL CONNECT TO TESTDB END-EXEC.
+           
+           IF SQLCODE NOT = 0
+               MOVE 99 TO TS-CD-RETORNO
+               DISPLAY "[DB2 ERROR] CONEXION FALLIDA: " SQLCODE
+               GOBACK
+           END-IF.
+
+                 PERFORM 1000-PROCESAR-CURSOR.
+           
+           GOBACK.
+        
+       1000-PROCESAR-CURSOR.
+           MOVE TE-ID-CLIENTE TO WS-ID-CLIENTE.
+           
+           EXEC SQL
+                DECLARE C_CUENTAS CURSOR FOR
+                    SELECT S.EFECTIVO_DISPONIBLE,
+                           S.EFECTIVO_EMBARGADO,
+                           CU.IBAN
+                    FROM CLIENTE C
+                    INNER JOIN CUENTA CU ON C.ID_CLIENTE = CU.ID_CLIENTE
+                    INNER JOIN SALDO  S  ON CU.ID_SALDO  = S.ID_SALDO
+                    WHERE C.ID_CLIENTE = :WS-ID-CLIENTE
+           END-EXEC.
+
+           EXEC SQL OPEN C_CUENTAS END-EXEC.
+           
+           EVALUATE SQLCODE
+               WHEN 0
+                   SET IX-CTA TO 1
+                   PERFORM 2000-LECTURA-CURSOR
+                   
+                   PERFORM 3000-BUCLE-FETCH 
+                      UNTIL CURSOR-EOF OR IX-CTA > 10
+                      
+                   EXEC SQL CLOSE C_CUENTAS END-EXEC
+                   
+                   IF TS-NUM-CUENTAS > 0
+                       MOVE 00 TO TS-CD-RETORNO
+                   ELSE
+                       MOVE 01 TO TS-CD-RETORNO
+                       MOVE TE-ID-CLIENTE  
+                         TO TS-IBAN(IX-CTA)
+                   END-IF
+                   
+               WHEN OTHER
+                   DISPLAY "[DB2 ERROR] ERROR AL ABRIR CURSOR: " SQLCODE
+                   MOVE 99 TO TS-CD-RETORNO
+           END-EVALUATE.
+
+       2000-LECTURA-CURSOR.
+           EXEC SQL
+                FETCH C_CUENTAS INTO :WS-SALDO-EFECTIVO, 
+                                     :WS-SALDO-EMBARGADO, 
+                                     :WS-IBAN
+           END-EXEC.
+           
+      
+           EVALUATE SQLCODE
+               WHEN 0
+                   SET CURSOR-OK TO TRUE
+               WHEN 100
+                   SET CURSOR-EOF TO TRUE
+               WHEN OTHER
+                   DISPLAY "[DB2 ERROR] FETCH FALLIDO: " SQLCODE
+                   SET CURSOR-EOF TO TRUE
+                   MOVE 99 TO TS-CD-RETORNO
+           END-EVALUATE.
+
+       3000-BUCLE-FETCH.
+      
+           MOVE WS-SALDO-EFECTIVO  TO TS-SALDO-EFECTIVO(IX-CTA).
+           MOVE WS-SALDO-EMBARGADO TO TS-SALDO-EMBARGADO(IX-CTA).
+           MOVE WS-IBAN            TO TS-IBAN(IX-CTA).
+           
+           ADD 1 TO TS-NUM-CUENTAS.
+           SET IX-CTA UP BY 1.
+
+           PERFORM 2000-LECTURA-CURSOR.
+

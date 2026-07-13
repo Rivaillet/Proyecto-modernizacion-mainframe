@@ -8,7 +8,7 @@
            05 TE-ACCION       PIC X(4)       VALUE SPACES.
            05 FILLER          PIC X(196)      VALUE SPACES.
 
-       01 TRAMA-SALIDA        PIC X(200)     VALUE SPACES.
+       01 TRAMA-SALIDA        PIC X(524)     VALUE SPACES.
 
        PROCEDURE DIVISION.
        0000-MAIN.
@@ -28,9 +28,9 @@
       *         WHEN 'INGR'
       *              CALL 'OTRO-MODULO' USING TRAMA-ENTRADA
       *                                       TRAMA-SALIDA 
-      *         WHEN 'CONS'
-      *              CALL 'OTRO-MODULO' USING TRAMA-ENTRADA
-      *                                       TRAMA-SALIDA 
+               WHEN 'CONS'
+                    CALL 'MCONS' USING TRAMA-ENTRADA
+                                             TRAMA-SALIDA 
                WHEN OTHER 
                     MOVE 'ERROR : ACCIÓN INVÁLIDA '
                       TO TRAMA-SALIDA 
